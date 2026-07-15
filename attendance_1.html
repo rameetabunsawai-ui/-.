@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบเช็คชื่อ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F0F4F8;
+    --surface: #FFFFFF;
+    --surface2: #F8FAFC;
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --primary-light: #EFF6FF;
+    --accent: #0EA5E9;
+    --success: #10B981;
+    --success-bg: #ECFDF5;
+    --danger: #EF4444;
+    --danger-bg: #FEF2F2;
+    --warning: #F59E0B;
+    --text: #0F172A;
+    --text2: #475569;
+    --text3: #94A3B8;
+    --border: #E2E8F0;
+    --border2: #CBD5E1;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.1), 0 8px 32px rgba(0,0,0,.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sarabun', 'IBM Plex Sans Thai', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 60px;
+  }
+  .app-header h1 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+  .app-header .back-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--primary);
+    padding: 4px;
+  }
+
+  /* ===== MAIN ===== */
+  .main { padding: 1.5rem; max-width: 680px; margin: 0 auto; }
+
+  /* ===== PAGE SECTIONS ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== PAGE 1: ตารางทั้งหมด ===== */
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .25rem;
+  }
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text2);
+    margin-bottom: 1.5rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .65rem 1.25rem;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid #FECACA;
+  }
+  .btn-success {
+    background: var(--success);
+    color: #fff;
+  }
+  .btn-sm { padding: .4rem .85rem; font-size: 13px; }
+  .btn-icon { padding: .5rem; border-radius: 8px; }
+
+  /* ===== ADD TABLE CARD ===== */
+  .add-table-card {
+    background: var(--primary-light);
+    border: 2px dashed #93C5FD;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: none;
+  }
+  .add-table-card.open { display: block; }
+  .add-table-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1rem;
+  }
+
+  .form-group { margin-bottom: 1rem; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: .35rem;
+  }
+  .form-input {
+    width: 100%;
+    padding: .6rem .9rem;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+  }
+
+  .date-list { display: flex; flex-direction: column; gap: .5rem; margin-bottom: .75rem; }
+  .date-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .5rem .75rem;
+    font-size: 14px;
+  }
+  .date-item span { flex: 1; color: var(--text); }
+  .date-item .rm { background: none; border: none; color: var(--danger); font-size: 18px; cursor: pointer; line-height: 1; }
+
+  .day-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .4rem;
+    margin-bottom: .75rem;
+  }
+  .day-chip {
+    padding: .4rem;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .12s;
+    color: var(--text2);
+  }
+  .day-chip.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .date-row { display: flex; gap: .5rem; align-items: flex-end; }
+  .date-row .form-group { flex: 1; margin-bottom: 0; }
+
+  .form-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+  /* ===== TABLE CARDS ===== */
+  .tables-grid { display: flex; flex-direction: column; gap: 1rem; }
+  .table-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow .15s, transform .12s;
+  }
+  .table-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .table-card-header {
+    padding: 1rem 1.25rem .75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+  }
+  .table-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .table-card-info { flex: 1; min-width: 0; }
+  .table-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .table-card-room {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 1px;
+  }
+  .table-card-actions { display: flex; gap: .25rem; align-self: center; }
+  .table-card-dates {
+    padding: .5rem 1.25rem .9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+  .date-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .25rem .6rem;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .date-tag.has-data {
+    background: var(--success-bg);
+    border-color: #6EE7B7;
+    color: #065F46;
+  }
+
+  /* ===== PAGE 2: รายชื่อ ===== */
+  .detail-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1.25rem;
+  }
+  .detail-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 8px;
+    padding: .35rem .85rem;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .room-edit-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .6rem .9rem;
+  }
+  .room-edit-row span {
+    font-size: 14px;
+    color: var(--text2);
+    flex-shrink: 0;
+  }
+  .room-edit-row input {
+    flex: 1;
+    border: none;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    background: transparent;
+    outline: none;
+  }
+
+  /* ===== DATE TABS ===== */
+  .date-tabs {
+    display: flex;
+    gap: .4rem;
+    overflow-x: auto;
+    padding-bottom: .5rem;
+    margin-bottom: 1rem;
+    scrollbar-width: none;
+  }
+  .date-tabs::-webkit-scrollbar { display: none; }
+  .date-tab {
+    flex-shrink: 0;
+    padding: .45rem 1rem;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text2);
+    white-space: nowrap;
+    transition: all .12s;
+  }
+  .date-tab.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  /* ===== STATS ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .5rem;
+    margin-bottom: 1rem;
+  }
+  .stat-box {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    padding: .6rem .75rem;
+    text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 700; }
+  .stat-num.green { color: var(--success); }
+  .stat-num.red { color: var(--danger); }
+  .stat-num.blue { color: var(--primary); }
+  .stat-label { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  /* ===== STUDENT LIST ===== */
+  .list-toolbar {
+    display: flex;
+    gap: .5rem;
+    margin-bottom: .75rem;
+    flex-wrap: wrap;
+  }
+  .list-toolbar input { flex: 1; min-width: 120px; }
+  .list-toolbar select {
+    padding: .6rem .75rem;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .student-list { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1rem; }
+  .student-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .6rem .85rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    transition: border-color .1s, background .1s;
+  }
+  .student-row.editing { border-color: var(--primary); background: var(--primary-light); }
+  .s-num {
+    font-size: 12px;
+    color: var(--text3);
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .s-name {
+    flex: 1;
+    font-size: 15px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .s-name-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+  }
+  .s-id-input {
+    width: 56px;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: .2rem .4rem;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: center;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+  }
+  .s-id-input:focus { border-color: var(--primary); }
+  .s-status {
+    display: flex;
+    gap: .3rem;
+    flex-shrink: 0;
+  }
+  .s-btn {
+    padding: .3rem .65rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all .1s;
+  }
+  .s-btn-present { background: var(--success-bg); color: var(--success); border-color: #6EE7B7; }
+  .s-btn-absent { background: var(--danger-bg); color: var(--danger); border-color: #FECACA; }
+  .s-btn-late { background: #FFFBEB; color: var(--warning); border-color: #FDE68A; }
+  .s-btn.active-present { background: var(--success); color: #fff; border-color: var(--success); }
+  .s-btn.active-absent { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .s-btn.active-late { background: var(--warning); color: #fff; border-color: var(--warning); }
+  .s-actions { display: flex; gap: .2rem; flex-shrink: 0; }
+  .s-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: .25rem;
+    border-radius: 4px;
+    font-size: 16px;
+    color: var(--text3);
+    transition: color .1s;
+  }
+  .s-icon-btn:hover { color: var(--text); }
+
+  /* ===== ADD STUDENT ===== */
+  .add-student-row {
+    display: flex;
+    gap: .5rem;
+    margin-bottom: 1rem;
+  }
+  .add-student-row input { flex: 1; }
+  .add-student-row .num-in { width: 70px; }
+
+  /* ===== COPY AREA ===== */
+  .copy-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+  .copy-section h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: .75rem;
+  }
+  .copy-btns { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1E293B;
+    color: #fff;
+    padding: .6rem 1.25rem;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 999;
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== EMPTY ===== */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text3);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: .75rem; }
+  .empty-title { font-size: 16px; font-weight: 600; color: var(--text2); margin-bottom: .25rem; }
+  .empty-sub { font-size: 14px; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    width: 100%;
+    max-width: 360px;
+    box-shadow: var(--shadow-md);
+  }
+  .modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 1rem; }
+  .modal-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
+
+  @media (max-width: 480px) {
+    .main { padding: 1rem; }
+    .page-title { font-size: 20px; }
+    .stats-row { grid-template-columns: repeat(3,1fr); gap: .35rem; }
+    .stat-num { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <button class="back-btn" id="backBtn" onclick="goBack()">←</button>
+  <h1 id="headerTitle">📋 ระบบเช็คชื่อ</h1>
+  <button class="btn btn-sm btn-secondary" id="copyBtn" style="display:none" onclick="showCopyMenu()">📋 คัดลอก</button>
+</header>
+
+<div class="main">
+
+  <!-- ===== PAGE 1: รายการตาราง ===== -->
+  <div class="page active" id="page1">
+    <div class="page-title">ตารางเช็คชื่อ</div>
+    <div class="page-subtitle">จัดการตารางเช็คชื่อของแต่ละห้องและวันที่</div>
+
+    <button class="btn btn-primary" style="margin-bottom:1rem;width:100%" onclick="toggleAddCard()">
+      ＋ สร้างตารางใหม่
+    </button>
+
+    <!-- ADD TABLE FORM -->
+    <div class="add-table-card" id="addTableCard">
+      <h3>✏️ สร้างตารางใหม่</h3>
+      <div class="form-group">
+        <label class="form-label">ชื่อกิจกรรม / รายวิชา</label>
+        <input class="form-input" id="newTableName" placeholder="เช่น รับน้อง 2569, วิชา... " />
+      </div>
+      <div class="form-group">
+        <label class="form-label">ห้อง</label>
+        <input class="form-input" id="newTableRoom" placeholder="เช่น TE.1/1" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">วันที่ (เพิ่มทีละวัน)</label>
+        <div style="margin-bottom:.5rem">
+          <div class="day-picker" id="dayPicker"></div>
+          <div class="date-row">
+            <div class="form-group">
+              <input class="form-input" type="number" id="dateDay" placeholder="วันที่" min="1" max="31" />
+            </div>
+            <div class="form-group">
+              <select class="form-input" id="dateMonth">
+                <option value="">เดือน</option>
+                <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
+                <option value="3">มีนาคม</option><option value="4">เมษายน</option>
+                <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+                <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option>
+                <option value="9">กันยายน</option><option value="10">ตุลาคม</option>
+                <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+              </select>
+            </div>
+            <div class="form-group" style="width:90px;flex:none">
+              <input class="form-input" type="number" id="dateYear" placeholder="พ.ศ." value="2569" />
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" style="margin-top:.4rem" onclick="addDateToNew()">+ เพิ่มวันที่</button>
+        </div>
+        <div class="date-list" id="newDateList"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="createTable()">สร้างตาราง</button>
+        <button class="btn btn-secondary" onclick="toggleAddCard()">ยกเลิก</button>
+      </div>
+    </div>
+
+    <!-- TABLES -->
+    <div id="tablesList"></div>
+  </div>
+
+  <!-- ===== PAGE 2: รายชื่อนักศึกษา ===== -->
+  <div class="page" id="page2">
+    <div class="room-edit-row">
+      <span>🏫 ห้อง:</span>
+      <input id="roomInput" placeholder="ระบุห้อง..." onchange="updateRoom()" />
+      <span style="font-size:11px;color:var(--text3)">แก้ไขได้</span>
+    </div>
+
+    <div class="date-tabs" id="dateTabs"></div>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num blue" id="statTotal">0</div><div class="stat-label">ทั้งหมด</div></div>
+      <div class="stat-box"><div class="stat-num green" id="statPresent">0</div><div class="stat-label">มาเรียน</div></div>
+      <div class="stat-box"><div class="stat-num red" id="statAbsent">0</div><div class="stat-label">ขาด</div></div>
+    </div>
+
+    <div class="list-toolbar">
+      <input class="form-input" id="searchInput" placeholder="ค้นหาชื่อ..." oninput="renderStudents()" style="flex:1;min-width:100px" />
+      <select id="filterStatus" onchange="renderStudents()">
+        <option value="all">ทั้งหมด</option>
+        <option value="present">มา</option>
+        <option value="absent">ขาด</option>
+        <option value="late">สาย</option>
+        <option value="none">ยังไม่เช็ค</option>
+      </select>
+    </div>
+
+    <div class="add-student-row">
+      <input class="form-input" id="newStudentName" placeholder="ชื่อ-นามสกุล" onkeydown="if(event.key==='Enter')addStudent()" />
+      <input class="form-input" id="newStudentNick" placeholder="ชื่อเล่น (ถ้ามี)" onkeydown="if(event.key==='Enter')addStudent()" style="max-width:120px" />
+      <input class="form-input num-in" id="newStudentNum" placeholder="เลขที่" type="number" min="1" onkeydown="if(event.key==='Enter')addStudent()" />
+      <button class="btn btn-primary btn-sm" onclick="addStudent()">+ เพิ่ม</button>
+    </div>
+
+    <div class="student-list" id="studentList"></div>
+
+    <div class="copy-section">
+      <h4>📤 ส่งออกข้อมูล</h4>
+      <div class="copy-btns">
+        <button class="btn btn-secondary btn-sm" onclick="copyCSV()">📋 คัดลอก CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="copyText()">📝 คัดลอกข้อความ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>🗑️ ลบตาราง?</h3>
+    <p style="font-size:14px;color:var(--text2)">ข้อมูลทั้งหมดในตารางนี้จะถูกลบและไม่สามารถกู้คืนได้</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeDeleteModal()">ยกเลิก</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDelete()">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+let data = JSON.parse(localStorage.getItem('att_v3') || 'null') || { tables: [] };
+let currentTableId = null;
+let currentDateIdx = 0;
+let newDates = [];
+let selectedDay = '';
+let deleteTargetId = null;
+
+const DAYS = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+const DAYS_FULL = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function save() { try { localStorage.setItem('att_v3', JSON.stringify(data)); } catch(e) {} }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function formatDate(d) {
+  return `วัน${DAYS_FULL[d.dayOfWeek]}ที่ ${d.day} ${MONTHS[d.month]} พ.ศ. ${d.year}`;
+}
+function formatDateShort(d) {
+  return `${DAYS[d.dayOfWeek]} ${d.day}/${d.month}`;
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ===== NAVIGATION =====
+function goToPage2(tableId) {
+  currentTableId = tableId;
+  currentDateIdx = 0;
+  document.getElementById('page1').classList.remove('active');
+  document.getElementById('page2').classList.add('active');
+  document.getElementById('backBtn').style.display = 'flex';
+  document.getElementById('copyBtn').style.display = 'flex';
+  renderPage2();
+}
+
+function goBack() {
+  document.getElementById('page1').classList.add('active');
+  document.getElementById('page2').classList.remove('active');
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('copyBtn').style.display = 'none';
+  document.getElementById('headerTitle').textContent = '📋 ระบบเช็คชื่อ';
+  renderPage1();
+}
+
+// ===== PAGE 1 =====
+function toggleAddCard() {
+  const c = document.getElementById('addTableCard');
+  c.classList.toggle('open');
+  if (c.classList.contains('open')) {
+    renderDayPicker();
+    newDates = [];
+    renderNewDateList();
+    document.getElementById('newTableName').value = '';
+    document.getElementById('newTableRoom').value = '';
+    document.getElementById('newTableName').focus();
+  }
+}
+
+function renderDayPicker() {
+  document.getElementById('dayPicker').innerHTML = DAYS_FULL.map((d,i) =>
+    `<button class="day-chip ${selectedDay===String(i)?'active':''}" onclick="selectDay(${i})">${d}</button>`
+  ).join('');
+}
+
+function selectDay(i) {
+  selectedDay = String(i);
+  renderDayPicker();
+}
+
+function addDateToNew() {
+  const day = parseInt(document.getElementById('dateDay').value);
+  const month = parseInt(document.getElementById('dateMonth').value);
+  const year = parseInt(document.getElementById('dateYear').value);
+  if (!day || !month || !year) { showToast('กรุณากรอกวันที่ให้ครบ'); return; }
+  if (!selectedDay && selectedDay !== '0') { showToast('กรุณาเลือกวัน'); return; }
+  const dateObj = { day, month, year, dayOfWeek: parseInt(selectedDay) };
+  newDates.push(dateObj);
+  renderNewDateList();
+  document.getElementById('dateDay').value = '';
+  document.getElementById('dateMonth').value = '';
+}
+
+function renderNewDateList() {
+  document.getElementById('newDateList').innerHTML = newDates.map((d, i) =>
+    `<div class="date-item">
+      <span>${formatDate(d)}</span>
+      <button class="rm" onclick="newDates.splice(${i},1);renderNewDateList()">×</button>
+    </div>`
+  ).join('') || '<div style="font-size:13px;color:var(--text3)">ยังไม่มีวันที่</div>';
+}
+
+function createTable() {
+  const name = document.getElementById('newTableName').value.trim();
+  const room = document.getElementById('newTableRoom').value.trim();
+  if (!name) { showToast('กรุณาใส่ชื่อกิจกรรม'); return; }
+  if (newDates.length === 0) { showToast('กรุณาเพิ่มอย่างน้อย 1 วัน'); return; }
+  const table = {
+    id: uid(), name, room: room || 'ไม่ระบุห้อง',
+    dates: newDates.map(d => ({ ...d, attendance: {} })),
+    students: []
+  };
+  data.tables.unshift(table);
+  save();
+  toggleAddCard();
+  renderPage1();
+  showToast('✅ สร้างตารางแล้ว');
+}
+
+function renderPage1() {
+  const el = document.getElementById('tablesList');
+  if (data.tables.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📂</div>
+      <div class="empty-title">ยังไม่มีตาราง</div>
+      <div class="empty-sub">กดปุ่ม "สร้างตารางใหม่" เพื่อเริ่มต้น</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = `<div class="tables-grid">${data.tables.map(t => `
+    <div class="table-card" onclick="goToPage2('${t.id}')">
+      <div class="table-card-header">
+        <div class="table-card-icon">📋</div>
+        <div class="table-card-info">
+          <div class="table-card-title">${t.name}</div>
+          <div class="table-card-room">🏫 ${t.room} · ${t.students.length} คน</div>
+        </div>
+        <div class="table-card-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-icon btn-danger btn-sm" onclick="openDeleteModal('${t.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="table-card-dates">
+        ${t.dates.map((d,i) => {
+          const count = Object.keys(d.attendance).length;
+          return `<span class="date-tag ${count>0?'has-data':''}">${formatDateShort(d)} ${count>0?'✓':''}</span>`;
+        }).join('')}
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ===== DELETE MODAL =====
+function openDeleteModal(id) {
+  deleteTargetId = id;
+  document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.remove('open');
+  deleteTargetId = null;
+}
+function confirmDelete() {
+  data.tables = data.tables.filter(t => t.id !== deleteTargetId);
+  save(); renderPage1(); closeDeleteModal();
+  showToast('ลบตารางแล้ว');
+}
+
+// ===== PAGE 2 =====
+function getTable() { return data.tables.find(t => t.id === currentTableId); }
+
+function renderPage2() {
+  const t = getTable();
+  if (!t) return;
+  document.getElementById('headerTitle').textContent = t.name;
+  document.getElementById('roomInput').value = t.room;
+  renderDateTabs();
+  renderStudents();
+}
+
+function updateRoom() {
+  const t = getTable();
+  t.room = document.getElementById('roomInput').value.trim() || 'ไม่ระบุห้อง';
+  save();
+}
+
+function renderDateTabs() {
+  const t = getTable();
+  document.getElementById('dateTabs').innerHTML = t.dates.map((d, i) =>
+    `<button class="date-tab ${i===currentDateIdx?'active':''}" onclick="switchDate(${i})">${formatDateShort(d)}</button>`
+  ).join('');
+}
+
+function switchDate(i) {
+  currentDateIdx = i;
+  renderDateTabs();
+  renderStudents();
+}
+
+function getAttendance() {
+  const t = getTable();
+  return t.dates[currentDateIdx].attendance;
+}
+
+function setStatus(studentId, status) {
+  const att = getAttendance();
+  if (att[studentId] === status) delete att[studentId];
+  else att[studentId] = status;
+  save();
+  renderStudents();
+}
+
+function renderStudents() {
+  const t = getTable();
+  const att = getAttendance();
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filter = document.getElementById('filterStatus').value;
+
+  let students = [...t.students];
+  if (q) students = students.filter(s => s.name.toLowerCase().includes(q) || String(s.num).includes(q) || (s.nick||'').toLowerCase().includes(q));
+  if (filter !== 'all') {
+    if (filter === 'none') students = students.filter(s => !att[s.id]);
+    else students = students.filter(s => att[s.id] === filter);
+  }
+
+  // stats
+  const total = t.students.length;
+  const present = t.students.filter(s => att[s.id] === 'present').length;
+  const absent = t.students.filter(s => att[s.id] === 'absent').length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPresent').textContent = present;
+  document.getElementById('statAbsent').textContent = absent;
+
+  const el = document.getElementById('studentList');
+  if (students.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:1.5rem 0">
+      <div class="empty-icon" style="font-size:32px">👤</div>
+      <div class="empty-title" style="font-size:14px">${t.students.length===0?'ยังไม่มีรายชื่อ':'ไม่พบรายชื่อที่ค้นหา'}</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = students.map(s => {
+    const status = att[s.id] || 'none';
+    return `<div class="student-row" id="row-${s.id}">
+      <div class="s-num">${s.num||'–'}</div>
+      <div class="s-name" ondblclick="editStudent('${s.id}')">${s.name}${s.nick?` <span style="font-size:12px;color:var(--text3)">(${s.nick})</span>`:''}</div>
+      <div class="s-status">
+        <button class="s-btn s-btn-present ${status==='present'?'active-present':''}" onclick="setStatus('${s.id}','present')">มา</button>
+        <button class="s-btn s-btn-absent ${status==='absent'?'active-absent':''}" onclick="setStatus('${s.id}','absent')">ขาด</button>
+        <button class="s-btn s-btn-late ${status==='late'?'active-late':''}" onclick="setStatus('${s.id}','late')">สาย</button>
+      </div>
+      <div class="s-actions">
+        <button class="s-icon-btn" title="แก้ไข" onclick="editStudent('${s.id}')">✏️</button>
+        <button class="s-icon-btn" title="ลบ" onclick="deleteStudent('${s.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addStudent() {
+  const name = document.getElementById('newStudentName').value.trim();
+  const nick = document.getElementById('newStudentNick').value.trim();
+  const num = document.getElementById('newStudentNum').value.trim();
+  if (!name) { showToast('กรุณาใส่ชื่อ'); return; }
+  const t = getTable();
+  t.students.push({ id: uid(), name, nick: nick || '', num: num || '' });
+  save();
+  document.getElementById('newStudentName').value = '';
+  document.getElementById('newStudentNick').value = '';
+  document.getElementById('newStudentNum').value = '';
+  document.getElementById('newStudentName').focus();
+  renderStudents();
+}
+
+function editStudent(id) {
+  const t = getTable();
+  const s = t.students.find(x => x.id === id);
+  const row = document.getElementById('row-' + id);
+  if (!row) return;
+  row.classList.add('editing');
+  const nameDiv = row.querySelector('.s-name');
+  nameDiv.outerHTML = `<div style="flex:1;display:flex;flex-direction:column;gap:3px"><input class="s-name-input" id="edit-name-${id}" value="${s.name}" /><input class="s-name-input" id="edit-nick-${id}" value="${s.nick||''}" placeholder="ชื่อเล่น" style="font-size:12px;color:var(--text2)" /></div>`;
+  const numEl = row.querySelector('.s-num');
+  numEl.outerHTML = `<input class="s-id-input" id="edit-num-${id}" value="${s.num||''}" placeholder="#" />`;
+  const actionsDiv = row.querySelector('.s-actions');
+  actionsDiv.innerHTML = `<button class="s-icon-btn" onclick="saveStudent('${id}')">✅</button>
+    <button class="s-icon-btn" onclick="renderStudents()">✖️</button>`;
+  document.getElementById('edit-name-' + id).focus();
+}
+
+function saveStudent(id) {
+  const t = getTable();
+  const s = t.students.find(x => x.id === id);
+  const nameEl = document.getElementById('edit-name-' + id);
+  const numEl = document.getElementById('edit-num-' + id);
+  if (nameEl) s.name = nameEl.value.trim() || s.name;
+  const nickEl = document.getElementById('edit-nick-' + id);
+  if (nickEl) s.nick = nickEl.value.trim();
+  if (numEl) s.num = numEl.value.trim();
+  save(); renderStudents();
+}
+
+function deleteStudent(id) {
+  const t = getTable();
+  t.students = t.students.filter(s => s.id !== id);
+  t.dates.forEach(d => delete d.attendance[id]);
+  save(); renderStudents();
+  showToast('ลบรายชื่อแล้ว');
+}
+
+// ===== COPY =====
+function copyCSV() {
+  const t = getTable();
+  const att = getAttendance();
+  const d = t.dates[currentDateIdx];
+  const rows = ['เลขที่,ชื่อ,ชื่อเล่น,สถานะ,วันที่'];
+  t.students.forEach(s => {
+    const status = att[s.id] === 'present' ? 'มา' : att[s.id] === 'absent' ? 'ขาด' : att[s.id] === 'late' ? 'สาย' : '-';
+    rows.push(`${s.num||'-'},${s.name},${s.nick||'-'},${status},${formatDateShort(d)}`);
+  });
+  copyToClipboard(rows.join('\n'), '📋 คัดลอก CSV แล้ว');
+}
+
+function copyText() {
+  const t = getTable();
+  const att = getAttendance();
+  const d = t.dates[currentDateIdx];
+  let text = `${t.name} | ห้อง ${t.room}\n${formatDate(d)}\n${'─'.repeat(30)}\n`;
+  text += `ทั้งหมด ${t.students.length} คน | มา ${t.students.filter(s=>att[s.id]==='present').length} | ขาด ${t.students.filter(s=>att[s.id]==='absent').length}\n${'─'.repeat(30)}\n`;
+  t.students.forEach(s => {
+    const st = att[s.id]==='present'?'✅':att[s.id]==='absent'?'❌':att[s.id]==='late'?'⏰':'⬜';
+    text += `${st} ${s.num?s.num+'. ':''}${s.name}${s.nick?' ('+s.nick+')':''}\n`;
+  });
+  copyToClipboard(text, '📝 คัดลอกข้อความแล้ว');
+}
+
+function showCopyMenu() { copyText(); }
+
+function copyToClipboard(text, msg) {
+  navigator.clipboard.writeText(text)
+    .then(() => showToast(msg))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      showToast(msg);
+    });
+}
+
+// ===== INIT =====
+renderPage1();
+</script>
+</body>
+</html>
